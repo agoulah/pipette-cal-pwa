@@ -1,0 +1,18 @@
+{
+  "name": "Pipette Calibration Tool",
+  "short_name": "Pipette Cal",
+  "description": "Educational tool for pipette calibration (ISO 8655).",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "browser"],
+  "background_color": "#005a9c",
+  "theme_color": "#005a9c",
+  "icons": [
+    { "src": "icons/icon-192x192.png",          "sizes": "192x192",  "type": "image/png" },
+    { "src": "icons/icon-512x512.png",          "sizes": "512x512",  "type": "image/png" },
+    { "src": "icons/icon-maskable-192x192.png", "sizes": "192x192",  "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-maskable-512x512.png", "sizes": "512x512",  "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/apple-touch-icon-180x180.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}

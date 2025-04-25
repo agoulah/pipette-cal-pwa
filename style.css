@@ -1,0 +1,750 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  --primary-color: #1172E8;
+  --primary-light: #E7F1FD;
+  --primary-dark: #0D5AC6;
+  --secondary-color: #F8F9FA; /* Lighter background */
+  --accent-color: #67E5DF; /* Keep or change */
+  --success-color: #28a745;
+  --success-light: #E9F6EC;
+  --warning-color: #ffc107;
+  --warning-light: #FFF8E7;
+  --danger-color: #dc3545;
+  --danger-light: #FBEBEC;
+  --text-color: #212529;
+  --text-muted: #6c757d;
+  --border-color: #dee2e6;
+  --card-bg: #FFFFFF;
+  --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --card-hover-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  --border-radius: 8px;
+  --transition-speed: 0.2s;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px; /* Base font size */
+  scroll-behavior: smooth;
+  /* Ensure vertical scrolling is always possible if content exceeds viewport */
+  overflow-y: scroll;
+}
+
+body {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Ensure body takes at least full viewport height */
+  min-height: 100vh;
+  overflow-x: hidden; /* Prevent unnecessary horizontal scroll */
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Header */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+.app-icon {
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+}
+.app-header h1 {
+  color: var(--primary-color);
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+.tagline {
+  color: var(--text-muted);
+  font-size: 1rem;
+  margin-top: 0.25rem;
+}
+
+/* Cards */
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--card-shadow);
+  transition: transform var(--transition-speed) ease-out, box-shadow var(--transition-speed) ease-out;
+  /* Make sure default overflow allows content visibility */
+  overflow: visible;
+}
+
+.card:hover {
+  /* Subtle hover effect */
+  /* transform: translateY(-2px); */
+  /* box-shadow: var(--card-hover-shadow); */
+}
+
+.card h2 {
+  color: var(--primary-dark);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.results-card h2 .step-number {
+    background-color: var(--success-color);
+}
+
+/* Input Groups & Forms (Setup Details) */
+.grid-inputs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0; /* Handled by grid gap */
+}
+
+.input-group label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.input-group input[type="number"],
+.input-group input[type="text"] { /* Added text just in case */
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+  width: 100%; /* Ensure inputs fill grid cell */
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.input-group small {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.1rem;
+}
+
+/* Calibration Phase Sections */
+.calibration-phase {
+  transition: opacity var(--transition-speed), max-height 0.4s ease-in-out;
+  opacity: 0.6; /* Dim inactive phases */
+  max-height: 1500px; /* Keep max-height for transition */
+  overflow: hidden; /* Hide content during transition */
+}
+.calibration-phase:not(.hidden) {
+    /* When visible, allow overflow if needed, let height be auto */
+    overflow: visible;
+    max-height: none; /* Allow it to grow beyond 1500px if needed */
+}
+
+.calibration-phase.phase-active {
+  opacity: 1;
+  border-left: 4px solid var(--primary-color); /* Highlight active */
+}
+.calibration-phase.hidden {
+  opacity: 0;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border: none;
+  overflow: hidden; /* Ensure hidden state clips content */
+}
+.phase-description {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-top: -1rem; /* Pull up below heading */
+    margin-bottom: 1rem;
+}
+
+/* Setpoint Input Area */
+.setpoints-container {
+    display: grid; /* Use grid for overall setpoint blocks */
+    gap: 1.5rem;
+}
+.measurement-setpoint {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    background-color: var(--secondary-color); /* Slight contrast */
+}
+.measurement-setpoint h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.75rem 0;
+    color: var(--primary-dark);
+}
+/* Add style for input error highlighting */
+.measurement-setpoint.input-error {
+    border-left: 4px solid var(--danger-color);
+}
+
+
+/* Container for all reading spinners within ONE setpoint block */
+.readings-container {
+    display: grid; /* Use grid */
+    grid-template-columns: 1fr; /* Force a single column */
+    gap: 0.75rem; /* Vertical gap between spinners */
+    margin-top: 0.5rem;
+}
+
+/* The main digit spinner component */
+.digit-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 0.5rem;
+    background-color: #fff;
+    width: 100%; /* Make spinner take full width of the grid column */
+    position: relative;
+    transition: box-shadow var(--transition-speed), border-color var(--transition-speed);
+}
+
+.digit-spinner:focus,
+.digit-spinner:focus-within { /* Style when spinner or its button is focused */
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Container for the digits themselves */
+.spinner-digits {
+    display: flex;
+    justify-content: center;
+    align-items: baseline;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    min-height: 1.8em;
+    background-color: var(--secondary-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    width: 100%;
+    text-align: center;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.spinner-digits .digit {
+    padding: 0 0.1em;
+}
+
+.spinner-digits .decimal-point {
+    font-size: 1.2rem;
+    margin: 0 0.05em;
+    align-self: center;
+}
+
+/* Container for the +/- buttons */
+.spinner-controls {
+    display: flex;
+    justify-content: space-around;
+    width: 100%;
+    margin-top: 0.25rem; /* Add slight space above buttons */
+}
+
+.spinner-btn {
+    font-size: 1.2rem;
+    font-weight: bold;
+    padding: 0.1rem 0.8rem;
+    line-height: 1.5;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+    color: var(--primary-color);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+    flex-grow: 1; /* Let buttons grow to fill space */
+    margin: 0 0.25rem; /* Add small margin between buttons */
+}
+.spinner-btn:first-child { margin-left: 0;}
+.spinner-btn:last-child { margin-right: 0;}
+
+
+.spinner-btn:hover {
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+}
+.spinner-btn:active {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+.placeholder-text {
+    font-style: italic;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 1rem;
+}
+
+/* Action Button & Status */
+.action-card {
+  text-align: center;
+}
+.button-primary {
+  background-color: var(--primary-color);
+  color: #FFF;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1.75rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-speed), transform var(--transition-speed);
+  display: inline-block; /* Allows centering */
+}
+.button-primary:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-2px);
+}
+.button-primary:disabled {
+  background-color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.status-box {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  display: none; /* Hidden initially */
+  transition: background-color 0.3s;
+}
+.status-box.status-success {
+  background-color: var(--success-light);
+  color: var(--success-color);
+  border: 1px solid var(--success-color);
+  display: block;
+}
+.status-box.status-fail {
+  background-color: var(--danger-light);
+  color: var(--danger-color);
+  border: 1px solid var(--danger-color);
+  display: block;
+}
+.status-box.status-info {
+  background-color: var(--primary-light);
+  color: var(--primary-dark);
+  border: 1px solid var(--primary-color);
+  display: block;
+}
+
+/* Results Section */
+.results-card {
+    transition: opacity var(--transition-speed), max-height 0.4s ease-in-out;
+    /* Remove fixed max-height from base style */
+    /* max-height: 2500px; */
+    overflow: visible; /* Ensure overflow is allowed when visible */
+}
+.results-card.hidden {
+  opacity: 0;
+  max-height: 0; /* Use max-height 0 for hiding transition */
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border: none;
+  overflow: hidden; /* Crucial: hide content when hidden */
+}
+
+.results-content {
+    display: grid;
+    grid-template-columns: 1fr; /* Force single column ALWAYS */
+    gap: 2rem; /* Vertical gap between table and charts container */
+}
+
+/* Results Table */
+.table-container {
+    overflow-x: auto; /* Allow horizontal scroll on small screens */
+    width: 100%;
+    margin-bottom: 1rem; /* Add space below table */
+}
+#summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0; /* Remove default margin */
+  font-size: 0.9rem;
+}
+#summary-table th,
+#summary-table td {
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 0.75rem;
+  text-align: center;
+  vertical-align: middle;
+}
+#summary-table thead th {
+  background-color: var(--secondary-color);
+  color: var(--text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+#summary-table tbody td {
+  background-color: var(--card-bg);
+}
+#summary-table tbody tr:nth-child(even) td {
+  background-color: var(--secondary-color); /* Subtle striping */
+}
+.status-cell-pass {
+    color: var(--success-color);
+    font-weight: 600;
+}
+.status-cell-fail {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+.status-cell-na {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Charts */
+.charts-container {
+    display: grid;
+    grid-template-columns: 1fr; /* Ensure single column layout ALWAYS */
+    gap: 1.5rem; /* Vertical gap between charts */
+}
+.chart-wrapper {
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    background: var(--secondary-color);
+    min-height: 250px; /* Add min-height to prevent collapse */
+    position: relative; /* Needed for Chart.js responsiveness */
+}
+.chart-wrapper h3 {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+canvas {
+  display: block; /* Fix potential extra space below canvas */
+  max-width: 100%;
+  /* Let Chart.js determine height based on aspect ratio */
+}
+
+/* Final Comparison Text */
+#final-comparison {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+#final-comparison h3 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+    color: var(--primary-dark);
+}
+#comparison-text {
+    font-size: 0.95rem;
+}
+
+
+/* Footer */
+footer {
+  text-align: center;
+  padding: 2rem 1rem 1rem 1rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+  .app-header h1 {
+    font-size: 1.5rem;
+  }
+  .tagline {
+    font-size: 0.9rem;
+  }
+  .card {
+    padding: 1rem;
+  }
+  .card h2 {
+    font-size: 1.15rem;
+    margin-bottom: 1rem;
+  }
+  .grid-inputs {
+     grid-template-columns: 1fr; /* Stack setup inputs */
+  }
+  /* Results content is already single column */
+}
+
+/* --- Styles for Information Section --- */
+
+.info-card {
+    /* Use card styles, but maybe a slightly different background or border */
+    background-color: var(--primary-light); /* Example: Light blue background */
+    border-left: 4px solid var(--primary-color);
+    overflow: hidden; /* Needed for max-height transition */
+}
+
+.info-card h2 {
+    cursor: pointer;
+    user-select: none; /* Prevent text selection on click */
+    margin-bottom: 0; /* Remove bottom margin when collapsed */
+    border-bottom: none; /* Remove border from h2 */
+    display: flex;
+    align-items: center;
+    transition: margin-bottom var(--transition-speed) ease-in-out; /* Smooth margin change */
+}
+
+.info-toggle-icon {
+    display: inline-block;
+    margin-right: 0.75rem;
+    transition: transform var(--transition-speed) ease-in-out;
+    font-size: 0.8em; /* Make icon slightly smaller */
+    line-height: 1; /* Prevent extra line height */
+}
+
+/* Rotate icon when expanded */
+.info-card:not(.collapsed) .info-toggle-icon {
+    transform: rotate(90deg);
+}
+
+.info-content {
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.4s ease-in-out, margin 0.4s ease-in-out;
+    padding: 0 1.5rem; /* Match card padding horizontally */
+    margin: 0;
+    border-top: 1px solid transparent; /* Prepare for border */
+}
+
+/* Styles when expanded */
+.info-card:not(.collapsed) h2 {
+     margin-bottom: 1.5rem; /* Add margin below header when expanded */
+}
+
+.info-card:not(.collapsed) .info-content {
+    max-height: 4000px; /* Large enough value for content */
+    opacity: 1;
+    overflow: visible; /* Allow content to be seen */
+    padding: 1rem 0 0.5rem 0; /* Adjust padding */
+    margin-top: 1rem; /* Space between header and content */
+    border-top: 1px solid var(--border-color); /* Separator line */
+}
+
+/* Styling within the info content */
+.info-content h3 {
+    color: var(--primary-dark);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.15rem;
+}
+.info-content h4 {
+    color: var(--text-color);
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.info-content p,
+.info-content ul,
+.info-content ol {
+    margin-bottom: 1rem;
+    line-height: 1.7; /* Improve readability */
+}
+
+.info-content ul,
+.info-content ol {
+    margin-left: 1.5rem;
+}
+
+.info-content strong {
+    font-weight: 600;
+}
+
+.info-content figure {
+    margin: 1.5rem 0;
+}
+.info-content figcaption {
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+.info-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+.info-content th,
+.info-content td {
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+}
+.info-content th {
+    background-color: var(--secondary-color);
+    font-weight: 600;
+}
+.info-content td:nth-child(1) { text-align: center; } /* Center first column if desired */
+.info-content td:nth-child(n+2) { text-align: right; } /* Right-align numeric columns */
+
+.practical-guide-card {
+    /* Example: Use a slightly different background or border */
+    background-color: var(--secondary-color); /* Lighter grey */
+    border-left: 4px solid var(--success-color); /* Green accent */
+    overflow: hidden;
+}
+
+.practical-guide-card h2 {
+    cursor: pointer;
+    user-select: none;
+    margin-bottom: 0;
+    border-bottom: none;
+    display: flex;
+    align-items: center;
+    transition: margin-bottom var(--transition-speed) ease-in-out;
+    /* Inherit color from default h2 */
+}
+
+/* Use the same toggle icon style */
+/* .info-toggle-icon defined earlier applies */
+
+/* Rotate icon when expanded */
+.practical-guide-card:not(.collapsed) .info-toggle-icon {
+    transform: rotate(90deg);
+}
+
+/* Use the same content hiding/showing mechanism */
+.practical-guide-card .info-content { /* Reuse info-content class for structure */
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out, padding 0.4s ease-in-out, margin 0.4s ease-in-out;
+    padding: 0 1.5rem;
+    margin: 0;
+    border-top: 1px solid transparent;
+}
+
+/* Styles when expanded */
+.practical-guide-card:not(.collapsed) h2 {
+     margin-bottom: 1.5rem;
+}
+
+.practical-guide-card:not(.collapsed) .info-content {
+    max-height: 6000px; /* Even larger max-height */
+    opacity: 1;
+    overflow: visible;
+    padding: 1rem 0 0.5rem 0;
+    margin-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Styling within the practical guide content */
+.practical-guide-card .info-content h3 {
+    color: var(--primary-dark);
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 1.15rem;
+}
+.practical-guide-card .info-content h4 {
+    color: var(--text-color);
+    margin-top: 1rem;
+    margin-bottom: 0.3rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
+.practical-guide-card .info-content p,
+.practical-guide-card .info-content ul,
+.practical-guide-card .info-content ol {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+.practical-guide-card .info-content ul,
+.practical-guide-card .info-content ol {
+    margin-left: 1.5rem;
+}
+
+.practical-guide-card .info-content strong {
+    font-weight: 600;
+}
+
+/* Table styling for the error correction table */
+.practical-guide-card .info-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+}
+.practical-guide-card .info-content th,
+.practical-guide-card .info-content td {
+    border: 1px solid var(--border-color);
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    vertical-align: top; /* Align content to top */
+}
+.practical-guide-card .info-content th {
+    background-color: var(--secondary-color);
+    font-weight: 600;
+    white-space: nowrap;
+}
+/* Adjust alignment for specific columns if needed */
+.practical-guide-card .info-content td:nth-child(2) {
+     text-align: center; /* Center % Error */
+     white-space: nowrap;
+}
