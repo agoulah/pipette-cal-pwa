@@ -6,449 +6,519 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pipette Calibration Tool</title>
 
-  <!-- PWA / appearance -->
+  <!-- PWA & appearance -->
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#1172E8" />
-
-  <!-- Icons -->
-  <link rel="icon" href="icons/favicon-32x32.png" sizes="32x32" type="image/png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon-180x180.png" />
-
-  <!-- Styles -->
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="icons/favicon-32x32.png" sizes="32x32" type="image/png" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180x180.png" />
 
-  <!-- Dependencies (deferred) -->
+  <!-- libs (deferred) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"
+    defer></script>
+
   <script src="script.js" defer></script>
 </head>
 
-
 <body>
-  <div class="container">
-    <header class="app-header">
-      <img src="icons/icon-192x192.png" alt="Pipette Cal Icon" class="app-icon" />
-      <div>
-        <h1>Pipette Calibration</h1>
-        <p class="tagline">ISO 8655 Gravimetric Method Tool</p>
-      </div>
-    </header>
 
-    <section id="info-section" class="card info-card collapsed">
-      <h2 id="info-toggle" role="button" aria-expanded="false" aria-controls="info-content">
-        <span class="info-toggle-icon">▶</span> ISO 8655 & Calibration Details
-      </h2>
-      <div id="info-content" class="info-content">
-        <p>This tool simulates calculations related to the calibration of piston-operated volumetric apparatus (POVA),
-          primarily focusing on the principles outlined in the **ISO 8655 standard series**. Understanding these
-          standards is essential for ensuring the accuracy and reliability of volume measurements in the laboratory.</p>
-        <p>The ISO 8655 series addresses the needs of manufacturers, calibration laboratories, test houses, and users of
-          POVA, providing a basis for quality control, calibration, testing, verification, and routine tests. The tests
-          specified are intended to be carried out by trained personnel. (Based on ISO 8655-1:2022 Introduction & ISO
-          8655-6:2022 Introduction).</p>
+  <body>
+    <div class="container">
+      <header class="app-header">
+        <img src="icons/icon-192x192.png" alt="Pipette Cal Icon" class="app-icon" />
+        <div>
+          <h1>Pipette Calibration</h1>
+          <p class="tagline">ISO 8655 Gravimetric Method Tool</p>
+        </div>
+      </header>
 
-        <h3>Scope of ISO 8655</h3>
-        <p>ISO 8655 specifies general requirements for piston-operated volumetric apparatus (POVA). It is applicable to
-          devices such as: (ISO 8655-1:2022, Clause 1)</p>
-        <ul>
-          <li><strong>Pipettes</strong> (ISO 8655-2): For accurately handling preselected volumes, including
-            air-displacement (Type A) and positive-displacement (Type D).</li>
-          <li><strong>Burettes</strong> (ISO 8655-3): Used for accurate delivery of variable volumes of liquid.</li>
-          <li><strong>Dilutors</strong> (ISO 8655-4): Designed to aspirate a measured sample volume (In) and deliver it
-            with a measured diluent volume (Ex).</li>
-          <li><strong>Dispensers</strong> (ISO 8655-5): Used for the accurate repetitive delivery of preset liquid
-            volumes.</li>
-          <li><strong>Manually operated precision laboratory syringes</strong> (ISO 8655-9).</li>
-        </ul>
-        <p>The series also defines test methods, including:</p>
-        <ul>
-          <li><strong>Gravimetric reference method</strong> (ISO 8655-6)</li>
-          <li><strong>Alternative measurement procedures</strong> (ISO 8655-7)</li>
-          <li><strong>Photometric reference method</strong> (ISO 8655-8)</li>
-        </ul>
+      <section id="info-section" class="card info-card collapsed">
+        <h2 id="info-toggle" role="button" aria-expanded="false" aria-controls="info-content">
+          <span class="info-toggle-icon">▶</span> ISO 8655 & Calibration Details
+        </h2>
+        <div id="info-content" class="info-content">
+          <p>This tool simulates calculations related to the calibration of piston-operated volumetric apparatus (POVA),
+            primarily focusing on the principles outlined in the **ISO 8655 standard series**. Understanding these
+            standards is essential for ensuring the accuracy and reliability of volume measurements in the laboratory.
+          </p>
+          <p>The ISO 8655 series addresses the needs of manufacturers, calibration laboratories, test houses, and users
+            of
+            POVA, providing a basis for quality control, calibration, testing, verification, and routine tests. The
+            tests
+            specified are intended to be carried out by trained personnel. (Based on ISO 8655-1:2022 Introduction & ISO
+            8655-6:2022 Introduction).</p>
 
-        <h3>Key Terminology (from ISO 8655-1:2022, Clause 3)</h3>
-        <p>Understanding these definitions is crucial:</p>
-        <ul>
-          <li><strong>Nominal Volume (3.24):</strong> The upper limit of the usable volume range specified by the
-            manufacturer (for variable volume POVA) or the stated volume (for fixed volume POVA).</li>
-          <li><strong>Calibration (3.4):</strong> Set of operations that establish the relationship between the
-            delivered volume and the corresponding selected volume of the apparatus, with associated measurement
-            uncertainties. Calibration does *not* permanently modify the apparatus.</li>
-          <li><strong>Adjustment (3.1):</strong> Set of operations carried out on a POVA so that the delivered volume
-            more closely corresponds to the nominal or selected volume. Requires subsequent calibration.</li>
-          <li><strong>Maximum Permissible Systematic Error (3.13):</strong> Permitted extreme value for the deviation of
-            the *mean* delivered volume from the nominal or selected volume. Limits are specified in the respective
-            parts (e.g., ISO 8655-2 for pipettes).</li>
-          <li><strong>Maximum Permissible Random Error (3.14):</strong> Permitted extreme value for the *variation* of
-            the delivered volumes around the mean (often expressed as standard deviation or coefficient of variation).
-            Limits are specified in the respective parts.</li>
-          <li><strong>Mean Delivered Volume (3.15):</strong> Arithmetic mean of multiple replicate delivered volumes
-            obtained by the measurement method.</li>
-          <li><strong>Measurement Accuracy (3.17):</strong> Closeness of agreement between delivered volume and the
-            nominal/selected volume. Encompasses both systematic error (trueness) and random error (precision).</li>
-          <li><strong>Precision (3.26):</strong> Closeness of agreement between replicate delivered volumes obtained
-            under repeatability conditions (related to random error).</li>
-          <li><strong>Metrological Confirmation (3.22):</strong> Set of operations required to ensure POVA conforms to
-            requirements for intended use (can include calibration, verification, adjustment, repair, labeling).</li>
-        </ul>
+          <h3>Scope of ISO 8655</h3>
+          <p>ISO 8655 specifies general requirements for piston-operated volumetric apparatus (POVA). It is applicable
+            to
+            devices such as: (ISO 8655-1:2022, Clause 1)</p>
+          <ul>
+            <li><strong>Pipettes</strong> (ISO 8655-2): For accurately handling preselected volumes, including
+              air-displacement (Type A) and positive-displacement (Type D).</li>
+            <li><strong>Burettes</strong> (ISO 8655-3): Used for accurate delivery of variable volumes of liquid.</li>
+            <li><strong>Dilutors</strong> (ISO 8655-4): Designed to aspirate a measured sample volume (In) and deliver
+              it
+              with a measured diluent volume (Ex).</li>
+            <li><strong>Dispensers</strong> (ISO 8655-5): Used for the accurate repetitive delivery of preset liquid
+              volumes.</li>
+            <li><strong>Manually operated precision laboratory syringes</strong> (ISO 8655-9).</li>
+          </ul>
+          <p>The series also defines test methods, including:</p>
+          <ul>
+            <li><strong>Gravimetric reference method</strong> (ISO 8655-6)</li>
+            <li><strong>Alternative measurement procedures</strong> (ISO 8655-7)</li>
+            <li><strong>Photometric reference method</strong> (ISO 8655-8)</li>
+          </ul>
 
-        <h3>Reference Measurement Procedures</h3>
-        <p>ISO 8655 specifies reference methods to determine the metrological performance (systematic and random errors)
-          of POVA.</p>
-        <ul>
-          <li><strong>Gravimetric Method (ISO 8655-6):</strong> Considered the primary reference method. It determines
-            volume by weighing the amount of test liquid (typically distilled water) delivered by the POVA. Calculations
-            require correction for liquid density (dependent on temperature) and air buoyancy (dependent on temperature
-            and barometric pressure), often using the Z correction factor. (ISO 8655-6: 9.3)</li>
-          <li><strong>Photometric Method (ISO 8655-8):</strong> Uses spectrophotometry to measure the absorbance of a
-            dye solution delivered by the POVA, relating absorbance to volume. (ISO 8655-8: Scope)</li>
-          <li><strong>Alternative Methods (ISO 8655-7):</strong> Provides procedures that deviate from the reference
-            methods but must be validated against them. Includes options like dual-dye ratiometric photometry,
-            single-dye photometry, titration, and hybrid methods. (ISO 8655-7: Scope, Clause 8)</li>
-        </ul>
-        <p>This tool simulates calculations based on the **Gravimetric Method**. </p>
+          <h3>Key Terminology (from ISO 8655-1:2022, Clause 3)</h3>
+          <p>Understanding these definitions is crucial:</p>
+          <ul>
+            <li><strong>Nominal Volume (3.24):</strong> The upper limit of the usable volume range specified by the
+              manufacturer (for variable volume POVA) or the stated volume (for fixed volume POVA).</li>
+            <li><strong>Calibration (3.4):</strong> Set of operations that establish the relationship between the
+              delivered volume and the corresponding selected volume of the apparatus, with associated measurement
+              uncertainties. Calibration does *not* permanently modify the apparatus.</li>
+            <li><strong>Adjustment (3.1):</strong> Set of operations carried out on a POVA so that the delivered volume
+              more closely corresponds to the nominal or selected volume. Requires subsequent calibration.</li>
+            <li><strong>Maximum Permissible Systematic Error (3.13):</strong> Permitted extreme value for the deviation
+              of
+              the *mean* delivered volume from the nominal or selected volume. Limits are specified in the respective
+              parts (e.g., ISO 8655-2 for pipettes).</li>
+            <li><strong>Maximum Permissible Random Error (3.14):</strong> Permitted extreme value for the *variation* of
+              the delivered volumes around the mean (often expressed as standard deviation or coefficient of variation).
+              Limits are specified in the respective parts.</li>
+            <li><strong>Mean Delivered Volume (3.15):</strong> Arithmetic mean of multiple replicate delivered volumes
+              obtained by the measurement method.</li>
+            <li><strong>Measurement Accuracy (3.17):</strong> Closeness of agreement between delivered volume and the
+              nominal/selected volume. Encompasses both systematic error (trueness) and random error (precision).</li>
+            <li><strong>Precision (3.26):</strong> Closeness of agreement between replicate delivered volumes obtained
+              under repeatability conditions (related to random error).</li>
+            <li><strong>Metrological Confirmation (3.22):</strong> Set of operations required to ensure POVA conforms to
+              requirements for intended use (can include calibration, verification, adjustment, repair, labeling).</li>
+          </ul>
 
-        <h3>Gravimetric Method Key Requirements (ISO 8655-6:2022)</h3>
-        <h4>Test Equipment (Clause 5)</h4>
-        <ul>
-          <li><strong>Balance (5.2):</strong> Selected based on the POVA's nominal volume. Must meet minimum
-            requirements for resolution, repeatability, and expanded uncertainty (U, k=2) specified in Table 1. For
-            example, testing volumes between 200 µL and 10 mL requires a balance with 0.1 mg resolution, 0.2 mg
-            repeatability, and 0.4 mg uncertainty.</li>
-          <li><strong>Thermometer (5.5, Table 2):</strong> For liquid and air temperature measurement (e.g., uncertainty
-            ≤ 0.2 °C for liquid).</li>
-          <li><strong>Hygrometer & Barometer (5.5, Table 2):</strong> Uncertainty ≤ 5% RH and ≤ 1 kPa respectively.</li>
-          <li><strong>Weighing Vessel (5.4):</strong> Appropriate geometry to minimize evaporation.</li>
-        </ul>
-        <h4>Test Conditions (Clause 7)</h4>
-        <ul>
-          <li><strong>Liquid (Clause 6):</strong> Distilled or deionized water (ISO 3696:1987, Grade 3 or better),
-            temperature within ±0.5 °C of ambient air.</li>
-          <li><strong>Room (7.2):</strong> Draught-free, stable temperature (20 ± 3) °C (or 27 °C if standard), max
-            variation ±0.5 °C during test, relative humidity 45% - 80%.</li>
-          <li><strong>Equilibration (7.2):</strong> Apparatus, equipment, and liquid equilibrated for ≥ 2 hours.</li>
-          <li><strong>Evaporation (7.3):</strong> Must be minimized and accounted for, especially for volumes < 50 µL.
-              Correction required.</li>
-        </ul>
-        <h4>Procedure (Clause 8 - Example for Pipettes 8.3)</h4>
-        <ul>
-          <li><strong>Test Volumes (8.1.1):</strong> For variable volume POVA, test at least 100% (nominal), 50%, and
-            10% (or lower limit if > 10%) of nominal volume.</li>
-          <li><strong>Measurements (8.1.2):</strong> Minimum of 10 replicate measurements per test volume for
-            calibration/testing (fewer, min 4, may be acceptable for routine tests if justified by uncertainty).</li>
-          <li><strong>Pipetting Cycle (8.3.2):</strong> Fit tip, pre-wet tip (e.g., 5x aspirate/dispense), depress
-            plunger, immerse tip vertically to specified depth (ISO 8655-7: Table 2), aspirate, pause (wait time per ISO
-            8655-7: Table 2), withdraw, dispense (touching vessel wall if appropriate), release plunger.</li>
-        </ul>
-        <h4>Evaluation (Clause 9)</h4>
-        <ul>
-          <li>Calculate volume from mass using density and Z-factor (or separate buoyancy correction).</li>
-          <li>Calculate mean volume (V), systematic error (eS = V - VS), and random error (sr or CV).</li>
-        </ul>
+          <h3>Reference Measurement Procedures</h3>
+          <p>ISO 8655 specifies reference methods to determine the metrological performance (systematic and random
+            errors)
+            of POVA.</p>
+          <ul>
+            <li><strong>Gravimetric Method (ISO 8655-6):</strong> Considered the primary reference method. It determines
+              volume by weighing the amount of test liquid (typically distilled water) delivered by the POVA.
+              Calculations
+              require correction for liquid density (dependent on temperature) and air buoyancy (dependent on
+              temperature
+              and barometric pressure), often using the Z correction factor. (ISO 8655-6: 9.3)</li>
+            <li><strong>Photometric Method (ISO 8655-8):</strong> Uses spectrophotometry to measure the absorbance of a
+              dye solution delivered by the POVA, relating absorbance to volume. (ISO 8655-8: Scope)</li>
+            <li><strong>Alternative Methods (ISO 8655-7):</strong> Provides procedures that deviate from the reference
+              methods but must be validated against them. Includes options like dual-dye ratiometric photometry,
+              single-dye photometry, titration, and hybrid methods. (ISO 8655-7: Scope, Clause 8)</li>
+          </ul>
+          <p>This tool simulates calculations based on the **Gravimetric Method**. </p>
 
-        <h3>Important Considerations from 2022 Updates</h3>
-        <ul>
-          <li><strong>Pipette & Tip System (ISO 8655-2:2022):</strong> Calibration is valid *only* for the specific
-            combination of pipette and tip type used during the test.</li>
-          <li><strong>Error Limits at Multiple Volumes (ISO 8655-2:2022):</strong> Maximum permissible errors for
-            variable volume pipettes are now explicitly defined at 10%, 50%, and 100% of the nominal volume.</li>
-          <li><strong>Operator Qualification (ISO 8655-7:2022, 4.3):</strong> Operators performing metrological
-            confirmation or routine tests should be adequately trained and competence documented.</li>
-          <li><strong>Calculation of Limits (e.g., ISO 8655-5:2022, 6.2):</strong> For volumes not explicitly listed in
-            the tables, permissible errors are often calculated proportionally from the nominal volume error (down to
-            10% of nominal volume).</li>
-        </ul>
+          <h3>Gravimetric Method Key Requirements (ISO 8655-6:2022)</h3>
+          <h4>Test Equipment (Clause 5)</h4>
+          <ul>
+            <li><strong>Balance (5.2):</strong> Selected based on the POVA's nominal volume. Must meet minimum
+              requirements for resolution, repeatability, and expanded uncertainty (U, k=2) specified in Table 1. For
+              example, testing volumes between 200 µL and 10 mL requires a balance with 0.1 mg resolution, 0.2 mg
+              repeatability, and 0.4 mg uncertainty.</li>
+            <li><strong>Thermometer (5.5, Table 2):</strong> For liquid and air temperature measurement (e.g.,
+              uncertainty
+              ≤ 0.2 °C for liquid).</li>
+            <li><strong>Hygrometer & Barometer (5.5, Table 2):</strong> Uncertainty ≤ 5% RH and ≤ 1 kPa respectively.
+            </li>
+            <li><strong>Weighing Vessel (5.4):</strong> Appropriate geometry to minimize evaporation.</li>
+          </ul>
+          <h4>Test Conditions (Clause 7)</h4>
+          <ul>
+            <li><strong>Liquid (Clause 6):</strong> Distilled or deionized water (ISO 3696:1987, Grade 3 or better),
+              temperature within ±0.5 °C of ambient air.</li>
+            <li><strong>Room (7.2):</strong> Draught-free, stable temperature (20 ± 3) °C (or 27 °C if standard), max
+              variation ±0.5 °C during test, relative humidity 45% - 80%.</li>
+            <li><strong>Equilibration (7.2):</strong> Apparatus, equipment, and liquid equilibrated for ≥ 2 hours.</li>
+            <li><strong>Evaporation (7.3):</strong> Must be minimized and accounted for, especially for volumes < 50 µL.
+                Correction required.</li>
+          </ul>
+          <h4>Procedure (Clause 8 - Example for Pipettes 8.3)</h4>
+          <ul>
+            <li><strong>Test Volumes (8.1.1):</strong> For variable volume POVA, test at least 100% (nominal), 50%, and
+              10% (or lower limit if > 10%) of nominal volume.</li>
+            <li><strong>Measurements (8.1.2):</strong> Minimum of 10 replicate measurements per test volume for
+              calibration/testing (fewer, min 4, may be acceptable for routine tests if justified by uncertainty).</li>
+            <li><strong>Pipetting Cycle (8.3.2):</strong> Fit tip, pre-wet tip (e.g., 5x aspirate/dispense), depress
+              plunger, immerse tip vertically to specified depth (ISO 8655-7: Table 2), aspirate, pause (wait time per
+              ISO
+              8655-7: Table 2), withdraw, dispense (touching vessel wall if appropriate), release plunger.</li>
+          </ul>
+          <h4>Evaluation (Clause 9)</h4>
+          <ul>
+            <li>Calculate volume from mass using density and Z-factor (or separate buoyancy correction).</li>
+            <li>Calculate mean volume (V), systematic error (eS = V - VS), and random error (sr or CV).</li>
+          </ul>
 
-        <hr>
-        <p><small><strong>Disclaimer:</strong> This information is a summary derived from excerpts of the ISO 8655
-            standard series (primarily Parts 1, 2, 4, 6, 7, 8 as available via OCR) for educational purposes. It may not
-            be complete or fully capture all nuances. For definitive requirements, official calibration, and testing,
-            always consult the complete, current, and official ISO 8655 standard documents purchased from ISO or
-            authorized resellers.</small></p>
-      </div>
-    </section>
+          <h3>Important Considerations from 2022 Updates</h3>
+          <ul>
+            <li><strong>Pipette & Tip System (ISO 8655-2:2022):</strong> Calibration is valid *only* for the specific
+              combination of pipette and tip type used during the test.</li>
+            <li><strong>Error Limits at Multiple Volumes (ISO 8655-2:2022):</strong> Maximum permissible errors for
+              variable volume pipettes are now explicitly defined at 10%, 50%, and 100% of the nominal volume.</li>
+            <li><strong>Operator Qualification (ISO 8655-7:2022, 4.3):</strong> Operators performing metrological
+              confirmation or routine tests should be adequately trained and competence documented.</li>
+            <li><strong>Calculation of Limits (e.g., ISO 8655-5:2022, 6.2):</strong> For volumes not explicitly listed
+              in
+              the tables, permissible errors are often calculated proportionally from the nominal volume error (down to
+              10% of nominal volume).</li>
+          </ul>
 
-    <!-- ============================================ -->
-    <!-- NEW PRACTICAL GUIDE SECTION (White Paper)    -->
-    <!-- ============================================ -->
-    <section id="practical-guide-section" class="card practical-guide-card collapsed">
-      <h2 id="practical-guide-toggle" role="button" aria-expanded="false" aria-controls="practical-guide-content">
-        <span class="info-toggle-icon">▶</span> Pipette Use & Maintenance: Best Practices
-      </h2>
-      <div id="practical-guide-content" class="info-content">
-        <p><em>(Content derived from Mettler Toledo / Rainin "Pipette Choice and Maintenance" White Paper)</em></p>
-        <p>Beyond formal calibration according to standards like ISO 8655, correct daily use, routine checks, and
-          preventive maintenance are crucial for ensuring precise and accurate results.</p>
+          <hr>
+          <p><small><strong>Disclaimer:</strong> This information is a summary derived from excerpts of the ISO 8655
+              standard series (primarily Parts 1, 2, 4, 6, 7, 8 as available via OCR) for educational purposes. It may
+              not
+              be complete or fully capture all nuances. For definitive requirements, official calibration, and testing,
+              always consult the complete, current, and official ISO 8655 standard documents purchased from ISO or
+              authorized resellers.</small></p>
+        </div>
+      </section>
 
-        <h3>Pipette Types & Principles</h3>
-        <ul>
-          <li><strong>Air Displacement (Type A):</strong> Most common for aqueous solutions. Economical and accurate.
-            Uses a cushion of air between the piston and the liquid sample. Susceptible to environmental factors (temp,
-            pressure, humidity) and liquid properties (viscosity, volatility). (See ISO 8655-2 Type A)</li>
-          <li><strong>Positive Displacement (Type D):</strong> Piston is in direct contact with the liquid, often using
-            disposable piston/capillary tips. Ideal for viscous, dense, volatile, or corrosive liquids. Prevents
-            cross-contamination and aerosol formation. (See ISO 8655-2 Type D)</li>
-          <li><strong>Fixed vs. Variable Volume:</strong> Fixed volume pipettes dispense only one specific volume.
-            Variable volume pipettes allow user selection within a specified range (nominal volume is the upper limit).
-          </li>
-          <li><strong>Manual vs. Electronic:</strong> Manual pipettes rely on user operation of the plunger. Electronic
-            pipettes use motors for piston movement, often improving consistency and offering features like repeat
-            dispensing, mixing, and variable speeds.</li>
-          <li><strong>Single vs. Multichannel:</strong> Multichannel pipettes (8 or 12 channel) increase throughput for
-            applications like 96-well plates. Consistent tip loading and sealing across all channels is critical.</li>
-        </ul>
+      <section id="practical-guide-section" class="card practical-guide-card collapsed">
+        <h2 id="practical-guide-toggle" role="button" aria-expanded="false" aria-controls="practical-guide-content">
+          <span class="info-toggle-icon">▶</span> Pipette Use & Maintenance: Best Practices
+        </h2>
+        <div id="practical-guide-content" class="info-content">
+          <p><em>(Content derived from Mettler Toledo / Rainin "Pipette Choice and Maintenance" White Paper)</em></p>
+          <p>Beyond formal calibration according to standards like ISO 8655, correct daily use, routine checks, and
+            preventive maintenance are crucial for ensuring precise and accurate results.</p>
 
-        <h3>Sources of Pipetting Variability & Errors</h3>
-        <p>Variability can arise from several sources:</p>
-        <ul>
-          <li><strong>Systematic Failures:</strong> Predictable wear and tear (seals, o-rings, pistons, shafts).
-            Addressed by regular preventive maintenance.</li>
-          <li><strong>Random Failures:</strong> Accidental damage (dropping), incorrect handling, drawing liquid into
-            the body. Prevented by careful use and training.</li>
-          <li><strong>Operator Technique:</strong> A major source of error. Inconsistent rhythm, speed, pressure,
-            immersion depth, angle, or incorrect technique (e.g., not pre-wetting, improper tip touch-off) significantly
-            impact results. Requires proper training and regular checks.</li>
-          <li><strong>Environmental Factors:</strong> Temperature (air, liquid, pipette), atmospheric pressure, relative
-            humidity affect evaporation and air density (especially critical for air displacement pipettes).</li>
-          <li><strong>Pipette/Tip System:</strong> Using incorrect or poor-quality tips leads to bad seals, dripping,
-            and inaccurate delivery. Pipette and tips function as a system (as per ISO 8655-2:2022).</li>
-          <li><strong>Liquid Properties:</strong> Liquids differing significantly from water (viscosity, density, vapor
-            pressure, surface tension) require specific techniques or positive displacement pipettes.</li>
-        </ul>
+          <h3>Pipette Types & Principles</h3>
+          <ul>
+            <li><strong>Air Displacement (Type A):</strong> Most common for aqueous solutions. Economical and accurate.
+              Uses a cushion of air between the piston and the liquid sample. Susceptible to environmental factors
+              (temp,
+              pressure, humidity) and liquid properties (viscosity, volatility). (See ISO 8655-2 Type A)</li>
+            <li><strong>Positive Displacement (Type D):</strong> Piston is in direct contact with the liquid, often
+              using
+              disposable piston/capillary tips. Ideal for viscous, dense, volatile, or corrosive liquids. Prevents
+              cross-contamination and aerosol formation. (See ISO 8655-2 Type D)</li>
+            <li><strong>Fixed vs. Variable Volume:</strong> Fixed volume pipettes dispense only one specific volume.
+              Variable volume pipettes allow user selection within a specified range (nominal volume is the upper
+              limit).
+            </li>
+            <li><strong>Manual vs. Electronic:</strong> Manual pipettes rely on user operation of the plunger.
+              Electronic
+              pipettes use motors for piston movement, often improving consistency and offering features like repeat
+              dispensing, mixing, and variable speeds.</li>
+            <li><strong>Single vs. Multichannel:</strong> Multichannel pipettes (8 or 12 channel) increase throughput
+              for
+              applications like 96-well plates. Consistent tip loading and sealing across all channels is critical.</li>
+          </ul>
 
-        <h3>Pipette Performance Assurance: Key Tasks</h3>
-        <p>A comprehensive plan includes:</p>
-        <ol>
-          <li><strong>Daily Care (User):</strong> External cleaning, checking for visible damage, ensuring smooth
-            plunger action.</li>
-          <li><strong>Inspection (User/PM):</strong> Checking tip cone/shaft for damage, verifying seal/leakage (often
-            part of PM).</li>
-          <li><strong>Performance Testing (User - "Quick Check"):</strong> Routine checks (e.g., daily, weekly, monthly
-            based on risk/usage) using a lab balance to verify performance against process tolerances. See steps below.
-          </li>
-          <li><strong>Preventive Maintenance (Service Provider/Trained User):</strong> Usually annually or more often
-            for high use. Includes internal cleaning, seal/o-ring replacement, piston/shaft check/replacement, leak
-            test.</li>
-          <li><strong>Calibration (Accredited Service Provider - ISO 17025):</strong> Formal comparison against
-            specifications (e.g., ISO 8655 or manufacturer's) under controlled conditions, including calculation of
-            measurement uncertainty. Results in a calibration certificate.</li>
-        </ol>
+          <h3>Sources of Pipetting Variability & Errors</h3>
+          <p>Variability can arise from several sources:</p>
+          <ul>
+            <li><strong>Systematic Failures:</strong> Predictable wear and tear (seals, o-rings, pistons, shafts).
+              Addressed by regular preventive maintenance.</li>
+            <li><strong>Random Failures:</strong> Accidental damage (dropping), incorrect handling, drawing liquid into
+              the body. Prevented by careful use and training.</li>
+            <li><strong>Operator Technique:</strong> A major source of error. Inconsistent rhythm, speed, pressure,
+              immersion depth, angle, or incorrect technique (e.g., not pre-wetting, improper tip touch-off)
+              significantly
+              impact results. Requires proper training and regular checks.</li>
+            <li><strong>Environmental Factors:</strong> Temperature (air, liquid, pipette), atmospheric pressure,
+              relative
+              humidity affect evaporation and air density (especially critical for air displacement pipettes).</li>
+            <li><strong>Pipette/Tip System:</strong> Using incorrect or poor-quality tips leads to bad seals, dripping,
+              and inaccurate delivery. Pipette and tips function as a system (as per ISO 8655-2:2022).</li>
+            <li><strong>Liquid Properties:</strong> Liquids differing significantly from water (viscosity, density,
+              vapor
+              pressure, surface tension) require specific techniques or positive displacement pipettes.</li>
+          </ul>
 
-        <h3>Routine Performance Check (Quick Check) - 10 Steps</h3>
-        <p>This user-performed check helps ensure ongoing accuracy between formal calibrations:</p>
-        <ol>
-          <li>Adjust pipette to 100% nominal volume. Load a recommended tip. Tare a suitable weighing vessel (with
-            water/evaporation trap if needed) on an appropriate balance.</li>
-          <li>Pre-rinse the tip 3-5 times with the test liquid (e.g., distilled water).</li>
-          <li>Hold pipette vertically, immerse tip to correct depth (see ISO 8655-7 Table 2), aspirate smoothly.</li>
-          <li>Withdraw tip. Dispense into weighing vessel, touching tip to side wall at end of dispense (if required by
-            technique).</li>
-          <li>Record mass immediately after reading stabilizes.</li>
-          <li>Repeat steps 3-5 for the required number of replicates (e.g., 3 more times for a total of 4). Use the
-            *same tip*.</li>
-          <li>Eject the tip.</li>
-          <li>(Optional but recommended) Adjust pipette to 10% or minimum volume. Use a *new* tip, pre-rinse, and repeat
-            steps 3-7.</li>
-          <li>Calculate mean volume (using Z-factor), accuracy (systematic error), and precision (standard deviation).
-          </li>
-          <li>Compare results to required process tolerances or manufacturer specifications. If out of tolerance,
-            investigate (technique, environment) or schedule service/calibration.</li>
-        </ol>
-        <p><small>Note: This PWA tool performs the calculations (Step 9) based on your entered mass data.</small></p>
+          <h3>Pipette Performance Assurance: Key Tasks</h3>
+          <p>A comprehensive plan includes:</p>
+          <ol>
+            <li><strong>Daily Care (User):</strong> External cleaning, checking for visible damage, ensuring smooth
+              plunger action.</li>
+            <li><strong>Inspection (User/PM):</strong> Checking tip cone/shaft for damage, verifying seal/leakage (often
+              part of PM).</li>
+            <li><strong>Performance Testing (User - "Quick Check"):</strong> Routine checks (e.g., daily, weekly,
+              monthly
+              based on risk/usage) using a lab balance to verify performance against process tolerances. See steps
+              below.
+            </li>
+            <li><strong>Preventive Maintenance (Service Provider/Trained User):</strong> Usually annually or more often
+              for high use. Includes internal cleaning, seal/o-ring replacement, piston/shaft check/replacement, leak
+              test.</li>
+            <li><strong>Calibration (Accredited Service Provider - ISO 17025):</strong> Formal comparison against
+              specifications (e.g., ISO 8655 or manufacturer's) under controlled conditions, including calculation of
+              measurement uncertainty. Results in a calibration certificate.</li>
+          </ol>
 
-        <h3>Common Pipetting Errors & Corrections</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Observed Effect / Potential Problem</th>
-              <th>Approx. Error (%)</th>
-              <th>Correction / Best Practice</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Dripping tip / Leaking</td>
-              <td>Up to 50%+</td>
-              <td>Use correct, high-quality tips; check tip fit; check internal seals/piston (Service).</td>
-            </tr>
-            <tr>
-              <td>Uneven tips / variable liquid levels (Multichannel)</td>
-              <td>Up to 10%</td>
-              <td>Use recommended tips; ensure even, firm tip loading across all channels.</td>
-            </tr>
-            <tr>
-              <td>Re-using tips (Air Displacement)</td>
-              <td>Up to 4%</td>
-              <td>Use a fresh tip for each *different* sample or reagent; single use recommended per ISO 8655. OK for
-                replicates of *same* liquid during testing.</td>
-            </tr>
-            <tr>
-              <td>Residual fluid on tip exterior (droplet)</td>
-              <td>Up to 3%</td>
-              <td>Touch tip against vessel wall (e.g., 8-10mm wipe distance) after dispensing (as per ISO 8655-6). Avoid
-                wiping tip before dispensing.</td>
-            </tr>
-            <tr>
-              <td>Liquid coating tip interior (esp. viscous liquids)</td>
-              <td>Up to 2%</td>
-              <td>Pre-wet/pre-rinse the tip 3-5 times with the liquid being pipetted. Consider slower speeds or reverse
-                pipetting technique / positive displacement pipette.</td>
-            </tr>
-            <tr>
-              <td>Hasty / inconsistent technique</td>
-              <td>Up to 1.5%</td>
-              <td>Use smooth, consistent rhythm and pressure for aspiration and dispense. Observe recommended pause/wait
-                times.</td>
-            </tr>
-            <tr>
-              <td>Tip immersion depth too deep / shallow or angled</td>
-              <td>Up to 1%</td>
-              <td>Immerse vertically to the correct depth (refer to ISO 8655-7 Table 2 or manufacturer guide).</td>
-            </tr>
-            <tr>
-              <td>Hand warmth effect (prolonged handling)</td>
-              <td>Variable (Drift)</td>
-              <td>Minimize handling time of pipette body, especially between replicates during calibration/testing. Use
-                insulating stands.</td>
-            </tr>
-          </tbody>
-        </table>
+          <h3>Routine Performance Check (Quick Check) - 10 Steps</h3>
+          <p>This user-performed check helps ensure ongoing accuracy between formal calibrations:</p>
+          <ol>
+            <li>Adjust pipette to 100% nominal volume. Load a recommended tip. Tare a suitable weighing vessel (with
+              water/evaporation trap if needed) on an appropriate balance.</li>
+            <li>Pre-rinse the tip 3-5 times with the test liquid (e.g., distilled water).</li>
+            <li>Hold pipette vertically, immerse tip to correct depth (see ISO 8655-7 Table 2), aspirate smoothly.</li>
+            <li>Withdraw tip. Dispense into weighing vessel, touching tip to side wall at end of dispense (if required
+              by
+              technique).</li>
+            <li>Record mass immediately after reading stabilizes.</li>
+            <li>Repeat steps 3-5 for the required number of replicates (e.g., 3 more times for a total of 4). Use the
+              *same tip*.</li>
+            <li>Eject the tip.</li>
+            <li>(Optional but recommended) Adjust pipette to 10% or minimum volume. Use a *new* tip, pre-rinse, and
+              repeat
+              steps 3-7.</li>
+            <li>Calculate mean volume (using Z-factor), accuracy (systematic error), and precision (standard deviation).
+            </li>
+            <li>Compare results to required process tolerances or manufacturer specifications. If out of tolerance,
+              investigate (technique, environment) or schedule service/calibration.</li>
+          </ol>
+          <p><small>Note: This PWA tool performs the calculations (Step 9) based on your entered mass data.</small></p>
 
-        <h3>Operator Training</h3>
-        <p>ISO 8655 recognizes the operator as a key part of the pipetting system (pipette + tip + operator). Proper
-          training is essential to understand and minimize potential errors related to:</p>
-        <ul>
-          <li>Selecting the right pipette/volume range for the task.</li>
-          <li>Correctly setting the volume.</li>
-          <li>Tip immersion angle, depth, and timing.</li>
-          <li>Aspiration and dispensing speed and smoothness.</li>
-          <li>Pre-rinsing/wetting technique.</li>
-          <li>Tip touch-off technique.</li>
-          <li>Handling different liquid types (viscosity, volatility etc.).</li>
-          <li>Avoiding hand-warming effects.</li>
-        </ul>
-        <p>Regular competency checks are recommended.</p>
+          <h3>Common Pipetting Errors & Corrections</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Observed Effect / Potential Problem</th>
+                <th>Approx. Error (%)</th>
+                <th>Correction / Best Practice</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Dripping tip / Leaking</td>
+                <td>Up to 50%+</td>
+                <td>Use correct, high-quality tips; check tip fit; check internal seals/piston (Service).</td>
+              </tr>
+              <tr>
+                <td>Uneven tips / variable liquid levels (Multichannel)</td>
+                <td>Up to 10%</td>
+                <td>Use recommended tips; ensure even, firm tip loading across all channels.</td>
+              </tr>
+              <tr>
+                <td>Re-using tips (Air Displacement)</td>
+                <td>Up to 4%</td>
+                <td>Use a fresh tip for each *different* sample or reagent; single use recommended per ISO 8655. OK for
+                  replicates of *same* liquid during testing.</td>
+              </tr>
+              <tr>
+                <td>Residual fluid on tip exterior (droplet)</td>
+                <td>Up to 3%</td>
+                <td>Touch tip against vessel wall (e.g., 8-10mm wipe distance) after dispensing (as per ISO 8655-6).
+                  Avoid
+                  wiping tip before dispensing.</td>
+              </tr>
+              <tr>
+                <td>Liquid coating tip interior (esp. viscous liquids)</td>
+                <td>Up to 2%</td>
+                <td>Pre-wet/pre-rinse the tip 3-5 times with the liquid being pipetted. Consider slower speeds or
+                  reverse
+                  pipetting technique / positive displacement pipette.</td>
+              </tr>
+              <tr>
+                <td>Hasty / inconsistent technique</td>
+                <td>Up to 1.5%</td>
+                <td>Use smooth, consistent rhythm and pressure for aspiration and dispense. Observe recommended
+                  pause/wait
+                  times.</td>
+              </tr>
+              <tr>
+                <td>Tip immersion depth too deep / shallow or angled</td>
+                <td>Up to 1%</td>
+                <td>Immerse vertically to the correct depth (refer to ISO 8655-7 Table 2 or manufacturer guide).</td>
+              </tr>
+              <tr>
+                <td>Hand warmth effect (prolonged handling)</td>
+                <td>Variable (Drift)</td>
+                <td>Minimize handling time of pipette body, especially between replicates during calibration/testing.
+                  Use
+                  insulating stands.</td>
+              </tr>
+            </tbody>
+          </table>
 
-        <hr>
-        <p><small><strong>Source:</strong> This section summarizes best practices based on common knowledge and content
-            adapted from the Mettler Toledo / Rainin white paper "Pipette Choice and Maintenance". It is intended for
-            educational purposes.</small></p>
-      </div>
-    </section>
-    <!-- ============================================ -->
-    <!-- END PRACTICAL GUIDE SECTION                  -->
-    <!-- ============================================ -->
+          <h3>Operator Training</h3>
+          <p>ISO 8655 recognizes the operator as a key part of the pipetting system (pipette + tip + operator). Proper
+            training is essential to understand and minimize potential errors related to:</p>
+          <ul>
+            <li>Selecting the right pipette/volume range for the task.</li>
+            <li>Correctly setting the volume.</li>
+            <li>Tip immersion angle, depth, and timing.</li>
+            <li>Aspiration and dispensing speed and smoothness.</li>
+            <li>Pre-rinsing/wetting technique.</li>
+            <li>Tip touch-off technique.</li>
+            <li>Handling different liquid types (viscosity, volatility etc.).</li>
+            <li>Avoiding hand-warming effects.</li>
+          </ul>
+          <p>Regular competency checks are recommended.</p>
 
+          <hr>
+          <p><small><strong>Source:</strong> This section summarizes best practices based on common knowledge and
+              content
+              adapted from the Mettler Toledo / Rainin white paper "Pipette Choice and Maintenance". It is intended for
+              educational purposes.</small></p>
+        </div>
+      </section>
 
-    <main id="app">
-      <!-- Step 1: Calibration Details -->
-      <section id="inputs" class="card setup-card">
-        <h2><span class="step-number">1</span>Setup Details</h2>
+      <section id="session-meta" class="card setup-card">
+        <h2><span class="step-number">0</span>Session Details</h2>
+
         <div class="grid-inputs">
           <div class="input-group">
-            <label for="nominal_vol">Nominal Volume (µL)</label>
-            <input type="number" id="nominal_vol" value="1000" min="1" step="0.1" required />
+            <label for="operator_name">Operator</label>
+            <input id="operator_name" type="text" placeholder="e.g. A. Goulah" required>
           </div>
+
           <div class="input-group">
-            <label for="temp_c">Water Temp (°C)</label>
-            <input type="number" id="temp_c" value="20.0" min="10" max="30" step="0.1" required />
+            <label for="pipette_id">Pipette ID / Serial</label>
+            <input id="pipette_id" type="text" placeholder="e.g. P1000-SN1234" required>
           </div>
+
           <div class="input-group">
-            <label for="pressure_kpa">Air Pressure (kPa)</label>
-            <input type="number" id="pressure_kpa" value="101.3" min="80" max="120" step="0.1" required />
-            <small>Used for Z-factor correction.</small>
+            <label for="balance_id">Balance ID</label>
+            <input id="balance_id" type="text" placeholder="e.g. Mettler-01" required>
           </div>
+
           <div class="input-group">
-            <label for="num_readings">Readings per Setpoint</label>
-            <input type="number" id="num_readings" value="5" min="3" max="10" step="1" required />
+            <label for="session_date">Date</label>
+            <input id="session_date" type="date">
           </div>
         </div>
       </section>
 
-      <!-- Step 2: Pre-Calibration -->
-      <section id="pre-section" class="card calibration-phase phase-active">
-        <h2><span class="step-number">2</span>Pre-Calibration Readings (mg)</h2>
-        <p class="phase-description">Enter the mass readings before any adjustments.</p>
-        <div id="setpoints-pre" class="setpoints-container">
-          <!-- Input fields generated by JS -->
-          <div class="placeholder-text">Setup details first to generate fields.</div>
-        </div>
-      </section>
-
-      <!-- Step 3: Post-Calibration (Initially hidden) -->
-      <section id="post-section" class="card calibration-phase hidden">
-        <h2><span class="step-number">3</span>Post-Calibration Readings (mg)</h2>
-        <p class="phase-description">Enter readings after adjustment (only if Pre-Cal failed).</p>
-        <div id="setpoints-post" class="setpoints-container">
-          <!-- Input fields generated by JS -->
-        </div>
-      </section>
-
-      <!-- Step 4: Actions & Status -->
-      <section id="actions" class="card action-card">
-        <button id="calculate-btn" class="button-primary">Check Pre-Calibration</button>
-        <div id="status-message" class="status-box" aria-live="polite">
-          <!-- Status messages appear here -->
-        </div>
-      </section>
-
-      <!-- Step 5: Results (Initially hidden) -->
-      <section id="results" class="card results-card hidden">
-        <h2><span class="step-number">✓</span>Results Summary</h2>
-        <div class="results-content">
-          <div class="table-container">
-            <table id="summary-table">
-              <thead>
-                <tr>
-                  <th>Phase</th>
-                  <th>Setpoint</th>
-                  <th>Target (µL)</th>
-                  <th>Mean (µL)</th>
-                  <th>Sys. Err (µL)</th>
-                  <th>Rand. Err (µL)</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody id="summary-tbody"></tbody>
-            </table>
-          </div>
-
-          <div class="charts-container">
-            <div class="chart-wrapper">
-              <h3>Mean Volume vs Target</h3>
-              <canvas id="chart-volume"></canvas>
+      <main id="app">
+        <!-- Step 1: Calibration Details -->
+        <section id="inputs" class="card setup-card">
+          <h2><span class="step-number">1</span>Setup Details</h2>
+          <div class="grid-inputs">
+            <div class="input-group">
+              <label for="nominal_vol">Nominal Volume (µL)</label>
+              <input type="number" id="nominal_vol" value="1000" min="1" step="0.1" required />
             </div>
-            <div class="chart-wrapper">
-              <h3>Systematic Error (Accuracy)</h3>
-              <canvas id="chart-syserr"></canvas>
+            <div class="input-group">
+              <label for="temp_c">Water Temp (°C)</label>
+              <input type="number" id="temp_c" value="20.0" min="10" max="30" step="0.1" required />
             </div>
-            <div class="chart-wrapper">
-              <h3>Random Error (Precision)</h3>
-              <canvas id="chart-randerr"></canvas>
+            <div class="input-group">
+              <label for="pressure_kpa">Air Pressure (kPa)</label>
+              <input type="number" id="pressure_kpa" value="101.3" min="80" max="120" step="0.1" required />
+              <small>Used for Z-factor correction.</small>
+            </div>
+            <div class="input-group">
+              <label for="balance_unc">Balance U<sub>(k = 2)</sub> (mg)</label>
+              <input id="balance_unc" type="number" value="0.4" min="0.001" step="0.001" required>
+              <small>Must be &lt; ¼ of MPE<sub>sys</sub> (ISO 8655-6 §5.2)</small>
+            </div>
+
+            <div class="input-group">
+              <label for="num_readings">Readings per Setpoint</label>
+              <input type="number" id="num_readings" value="10" min="10" max="10" step="1" readonly />
+            </div>
+            <div class="input-group">
+              <label for="fast_entry">
+                <input type="checkbox" id="fast_entry">
+                Fast entry (type numbers)
+              </label>
+              <small>Un-tick to return to ± spinners.</small>
             </div>
           </div>
-        </div>
-        <div id="final-comparison" class="hidden">
-          <h3>Pre vs Post Comparison</h3>
-          <p id="comparison-text"></p>
-        </div>
+        </section>
+
+        <!-- Step 2: Pre-Calibration -->
+        <section id="pre-section" class="card calibration-phase phase-active">
+          <h2><span class="step-number">2</span>Pre-Calibration Readings (mg)</h2>
+          <p class="phase-description">Enter the mass readings before any adjustments.</p>
+          <div id="setpoints-pre" class="setpoints-container">
+            <!-- Input fields generated by JS -->
+            <div class="placeholder-text">Setup details first to generate fields.</div>
+          </div>
+        </section>
+
+        <!-- Step 3: Post-Calibration (Initially hidden) -->
+        <section id="post-section" class="card calibration-phase hidden">
+          <h2><span class="step-number">3</span>Post-Calibration Readings (mg)</h2>
+          <p class="phase-description">Enter readings after adjustment (only if Pre-Cal failed).</p>
+          <div id="setpoints-post" class="setpoints-container">
+            <!-- Input fields generated by JS -->
+          </div>
+        </section>
+
+        <!-- Step 4: Actions & Status -->
+        <section id="actions" class="card action-card">
+          <button id="calculate-btn" class="button-primary">Check Pre-Calibration</button>
+          <div id="status-message" class="status-box" aria-live="polite">
+            <!-- Status messages appear here -->
+          </div>
+        </section>
+
+        <!-- Step 5: Results (Initially hidden) -->
+        <section id="results" class="card results-card hidden">
+          <h2><span class="step-number">✓</span>Results Summary</h2>
+          <div class="results-content">
+            <div class="table-container">
+              <table id="summary-table">
+                <thead>
+                  <tr>
+                    <th>Phase</th>
+                    <th>Setpoint</th>
+                    <th>Target (µL)</th>
+                    <th>Mean (µL)</th>
+                    <th>Sys. Err (µL)</th>
+                    <th>Rand. Err (µL)</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="summary-tbody"></tbody>
+              </table>
+            </div>
+
+            <div class="charts-container">
+              <div class="chart-wrapper">
+                <h3>Mean Volume vs Target</h3>
+                <canvas id="chart-volume"></canvas>
+              </div>
+              <div class="chart-wrapper">
+                <h3>Systematic Error (Accuracy)</h3>
+                <canvas id="chart-syserr"></canvas>
+              </div>
+              <div class="chart-wrapper">
+                <h3>Random Error (Precision)</h3>
+                <canvas id="chart-randerr"></canvas>
+              </div>
+            </div>
+          </div>
+          <div id="final-comparison" class="hidden">
+            <h3>Pre vs Post Comparison</h3>
+            <p id="comparison-text"></p>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>⚠️ Educational tool only. Always follow official SOPs and use calibrated equipment for laboratory work.</p>
+      </footer>
+      <section class="card action-card">
+        <button id="export-btn" class="button-secondary" disabled>Export PDF Report</button>
+        <button id="reset-btn" type="button">Reset</button>
+
       </section>
-    </main>
+    </div> <!-- .container -->
 
-    <footer>
-      <p>⚠️ Educational tool only. Always follow official SOPs and use calibrated equipment for laboratory work.</p>
-    </footer>
-  </div> <!-- .container -->
-
-  <script>
-    /* service-worker registration with auto-update */
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').then(reg => {
-        // Check immediately for a newer SW
-        reg.update();
-      }).catch(err => console.error('SW registration failed:', err));
-    }
-  </script>
-</body>
+    <script>
+      /* service-worker registration with auto-update */
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+          // Check immediately for a newer SW
+          reg.update();
+        }).catch(err => console.error('SW registration failed:', err));
+      }
+    </script>
+  </body>
 
 </html>
