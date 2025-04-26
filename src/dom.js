@@ -1,4 +1,13 @@
-// src/dom.js
+/**
+ * @file dom.js
+ * @description
+ * DOM manipulation and event binding utilities for the pipette calibration PWA.
+ * Handles dynamic creation of input fields, summary tables, chart rendering,
+ * collapsible sections, and user interactions for calibration workflow.
+ * Exports:
+ *   - buildSetpointInputs: Dynamically builds input fields for setpoints.
+ *   - bindEventHandlers: Initializes the app and binds all event listeners.
+ */
 
 import { DigitSpinner } from "./spinner.js";
 import { computeStats } from "./calibrationEngine.js";
@@ -8,6 +17,17 @@ import { sessionMeta } from "./state.js";
 import { SETPOINTS, DEFAULT_PRECISION, MPE } from "./constants.js";
 import { formatNum } from "./utils.js";
 
+/**
+ * Dynamically builds input fields for pipette calibration setpoints in the DOM.
+ * Creates either numeric input fields (fast entry) or digit spinners for each setpoint and reading.
+ * Used for both Pre- and Post- calibration phases.
+ *
+ * @param {HTMLElement} container - The DOM element to populate with input fields.
+ * @param {string} phaseLabel - Label for the calibration phase ("Pre" or "Post").
+ * @param {number} nominalVolValue - The nominal volume (µL) for the pipette.
+ * @param {number} numReadingsValue - Number of replicate readings per setpoint.
+ * @param {boolean} isFastEntry - If true, use numeric inputs; otherwise, use digit spinners.
+ */
 export function buildSetpointInputs(
   container,
   phaseLabel,
@@ -16,6 +36,13 @@ export function buildSetpointInputs(
   isFastEntry
 ) {
   container.innerHTML = "";
+  /**
+   * Sets up the nominal volume and number of readings for setpoint input generation.
+   * If the nominal volume is not valid (> 0), displays a placeholder message and exits.
+   *
+   * @param {number} nominalVolValue - The nominal volume value provided by the user.
+   * @param {number} numReadingsValue - The number of readings specified by the user.
+   */
   // Use the passed values directly
   const nominalVol = nominalVolValue || 0;
   const numReadings = numReadingsValue || 5;
@@ -23,6 +50,13 @@ export function buildSetpointInputs(
     container.innerHTML = `<div class="placeholder-text">Enter a valid Nominal Volume above.</div>`;
     return;
   }
+  /**
+   * For each setpoint, creates a DOM block containing input fields (either numeric or digit spinners)
+   * for user entry of replicate readings at the specified calibration setpoint.
+   * Appends the constructed setpoint block to the provided container.
+   *
+   * @param {number} sp - The setpoint fraction (e.g., 1, 0.5, 0.1).
+   */
   SETPOINTS.forEach((sp) => {
     const targetVol = nominalVol * sp;
     const targetMass = targetVol;
@@ -37,6 +71,11 @@ export function buildSetpointInputs(
     const readingsContainer = document.createElement("div");
     readingsContainer.className = "readings-container";
     for (let i = 1; i <= numReadings; i++) {
+      /**
+       * @type {HTMLInputElement|HTMLDivElement}
+       * Represents the input field for a single replicate reading at this setpoint.
+       * If fast entry mode is enabled, this is a numeric input; otherwise, a digit spinner container.
+       */
       let field;
       if (isFastEntry) {
         field = document.createElement("input");
@@ -69,6 +108,13 @@ export function buildSetpointInputs(
   );
 }
 
+/**
+ * Performs log-log interpolation between nearest rows of the MPE table
+ * to estimate systematic and random error limits for a given nominal volume.
+ *
+ * @param {number} nom - The nominal volume for which to interpolate limits.
+ * @returns {Object} An object containing interpolated 'nom', 'sys', and 'rand' values.
+ */
 function interpRow(nom) {
   // simple log-log interpolation between nearest rows
   const xs = MPE.map((r) => r.nom);
@@ -91,12 +137,25 @@ function interpRow(nom) {
   };
 }
 
+/**
+ * Looks up or interpolates ISO 8655 systematic and random error limits for a given nominal volume and setpoint fraction.
+ *
+ * @param {number} nominal - The nominal volume (µL) for which to get limits.
+ * @param {number} setFraction - The setpoint fraction (e.g., 1 for 100%, 0.5 for 50%, 0.1 for 10%).
+ * @returns {{sys: number, rand: number}} Object containing systematic (sys) and random (rand) error limits.
+ */
 function limitsFor(nominal, setFraction) {
   const row = MPE.find((r) => r.nom === nominal) || interpRow(nominal);
   const key = setFraction === 1 ? "p100" : setFraction === 0.5 ? "p50" : "p10";
   return { sys: row.sys[key], rand: row.rand[key] };
 }
 
+/**
+ * Enables or disables the export button in the UI.
+ *
+ * @param {Object} elements - Object containing DOM elements, including the export button.
+ * @param {boolean} enabled - If true, enables the export button; otherwise, disables it.
+ */
 function setExportButtonEnabled(elements, enabled) {
   if (elements && elements.export) {
     elements.export.disabled = !enabled;
@@ -108,7 +167,13 @@ function setExportButtonEnabled(elements, enabled) {
   }
 }
 
-// Reads DOM and updates the shared state object
+/**
+ * Reads session metadata fields from the DOM and updates the shared sessionMeta state object.
+ * Ensures that operator, pipette, balance, and date fields are populated.
+ *
+ * @param {Object} elements - Object containing references to DOM elements for session metadata.
+ * @returns {boolean} True if all essential fields are filled, false otherwise.
+ */
 function updateSessionMetaFromDOM(elements) {
   if (!elements || !elements.operator) {
     console.error("Meta elements not found for updating state.");
@@ -130,11 +195,66 @@ function updateSessionMetaFromDOM(elements) {
 }
 
 export function bindEventHandlers() {
+  // --- State Variables ---
+  /**
+   * Tracks the current calibration phase ("Pre" or "Post").
+   * @type {string}
+   */
   let currentPhase = "Pre";
+
+  /**
+   * Holds Chart.js chart instances for dynamic chart rendering.
+   * Keys: 'volume', 'sysErr', 'randErr'.
+   * @type {Object.<string, Chart>}
+   */
   let chartInstances = {};
+
+  /**
+   * Indicates whether fast entry mode (numeric input fields) is enabled.
+   * If false, digit spinners are used for input.
+   * @type {boolean}
+   */
   let fastEntryMode = false;
 
-  // Define elements here
+  // --- DOM Elements ---
+  /**
+   * Collection of references to key DOM elements used throughout the calibration app.
+   * Each property corresponds to an input, section, button, or container in the UI.
+   *
+   * @typedef {Object} Elements
+   * @property {HTMLInputElement} nominalVolInput - Input for nominal volume (µL).
+   * @property {HTMLInputElement} tempCInput - Input for temperature (°C).
+   * @property {HTMLInputElement} pressureKpaInput - Input for pressure (kPa).
+   * @property {HTMLInputElement} numReadingsInput - Input for number of replicate readings.
+   * @property {HTMLElement} preContainer - Container for Pre-calibration setpoint inputs.
+   * @property {HTMLElement} postContainer - Container for Post-calibration setpoint inputs.
+   * @property {HTMLElement} preSection - Section for Pre-calibration workflow.
+   * @property {HTMLElement} postSection - Section for Post-calibration workflow.
+   * @property {HTMLButtonElement} calculateBtn - Button to trigger calculation.
+   * @property {HTMLElement} statusMessage - Element to display status messages.
+   * @property {HTMLElement} resultsSection - Section displaying results.
+   * @property {HTMLElement} summaryTbody - Table body for summary results.
+   * @property {HTMLElement} finalComparison - Section for final comparison results.
+   * @property {HTMLElement} comparisonText - Element for comparison text.
+   * @property {HTMLCanvasElement} volumeChartCanvas - Canvas for volume chart.
+   * @property {HTMLCanvasElement} sysErrChartCanvas - Canvas for systematic error chart.
+   * @property {HTMLCanvasElement} randErrChartCanvas - Canvas for random error chart.
+   * @property {HTMLElement} infoSection - Collapsible info section.
+   * @property {HTMLElement} infoToggle - Toggle button for info section.
+   * @property {HTMLElement} infoContent - Content of info section.
+   * @property {HTMLElement} infoToggleIcon - Icon for info section toggle.
+   * @property {HTMLElement} practicalGuideSection - Collapsible practical guide section.
+   * @property {HTMLElement} practicalGuideToggle - Toggle button for practical guide.
+   * @property {HTMLElement} practicalGuideContent - Content of practical guide section.
+   * @property {HTMLInputElement} fastEntryCheckbox - Checkbox for fast entry mode.
+   * @property {HTMLInputElement} operator - Input for operator name.
+   * @property {HTMLInputElement} pipette - Input for pipette ID.
+   * @property {HTMLInputElement} balance - Input for balance ID.
+   * @property {HTMLInputElement} date - Input for session date.
+   * @property {HTMLButtonElement} export - Button to export report.
+   * @property {HTMLButtonElement} resetBtn - Button to reset the app.
+   * @property {HTMLInputElement} balanceUncInput - Input for balance uncertainty.
+   */
   const elements = {
     nominalVolInput: document.getElementById("nominal_vol"),
     tempCInput: document.getElementById("temp_c"),
@@ -171,22 +291,17 @@ export function bindEventHandlers() {
     balanceUncInput: document.getElementById("balance_unc"), // Added balance uncertainty
   };
 
-  // Initial state for export button
-
+  // --- Initial UI State ---
   setExportButtonEnabled(elements, false);
 
-  // --- Event Listeners for Meta Fields ---
-  // Update state whenever meta fields change
-  ["operator", "pipette", "balance", "date"].forEach((key) => {
-    if (elements[key]) {
-      elements[key].addEventListener("change", () => {
-        updateSessionMetaFromDOM(elements);
-        // Optionally, re-check if export can be enabled *if* results exist
-        // This depends on the desired UX. Usually, export is enabled only after calculation.
-      });
-    }
-  });
-
+  // --- Utility/Helper Functions ---
+  /**
+   * Renders the summary table of calibration results for each phase and setpoint.
+   * Populates the table body with calculated statistics (Mean, Sys, Rand) and pass/fail status.
+   *
+   * @param {string[]} phases - Array of phase labels (e.g., ["Pre", "Post"]).
+   * @param {Object[]} resultsArray - Array of results objects, one per phase, keyed by setpoint.
+   */
   function renderSummaryTable(phases, resultsArray) {
     elements.summaryTbody.innerHTML = "";
     const nominalVol = parseFloat(elements.nominalVolInput.value);
@@ -197,6 +312,13 @@ export function bindEventHandlers() {
         return;
       }
       SETPOINTS.forEach((sp) => {
+        /**
+         * Renders a summary table row for a given setpoint.
+         * If statistics are missing for the setpoint, displays a warning row.
+         * Otherwise, displays calculated values and pass/fail status.
+         *
+         * @param {number} sp - The setpoint fraction (e.g., 1, 0.5, 0.1).
+         */
         const stats = results[sp];
         if (!stats) {
           console.warn(`Missing stats for ${phaseLabel} ${sp * 100}%`);
@@ -223,6 +345,15 @@ export function bindEventHandlers() {
     });
   }
 
+  /**
+   * Renders a summary comparison of 100% setpoint systematic and random errors
+   * before and after calibration. Updates the UI with a message indicating
+   * whether the pipette adjustment was successful based on post-calibration results.
+   *
+   * @param {Object} preResults - Results object for the Pre-calibration phase.
+   * @param {Object} postResults - Results object for the Post-calibration phase.
+   * @param {boolean} postPass - Whether the pipette passed ISO 8655 limits after adjustment.
+   */
   function renderFinalComparison(preResults, postResults, postPass) {
     const preSys100 = preResults?.[1.0]?.Sys;
     const preRand100 = preResults?.[1.0]?.Rand;
@@ -252,6 +383,14 @@ export function bindEventHandlers() {
     elements.finalComparison.classList.remove("hidden");
   }
 
+  /**
+   * Renders all calibration charts (Volume, Systematic Error, Random Error) for the provided results and phases.
+   * Destroys any existing Chart.js instances before rendering new ones.
+   * Each chart visualizes the results for each calibration phase and setpoint.
+   *
+   * @param {Object[]} resultsArray - Array of results objects, one per phase, keyed by setpoint.
+   * @param {string[]} phases - Array of phase labels (e.g., ["Pre", "Post"]).
+   */
   function renderAllCharts(resultsArray, phases) {
     const labels = SETPOINTS.map((sp) => `${Math.round(sp * 100)}% Target`);
     const datasetsVolume = [];
@@ -365,6 +504,14 @@ export function bindEventHandlers() {
     }
   }
 
+  /**
+   * Creates a Chart.js configuration object for rendering calibration charts.
+   *
+   * @param {string[]} labels - The labels for the x-axis (setpoints).
+   * @param {Object[]} datasets - The datasets to plot (e.g., mean, systematic error, random error).
+   * @param {string} yAxisLabel - The label for the y-axis.
+   * @returns {Object} Chart.js configuration object.
+   */
   function createChartConfig(labels, datasets, yAxisLabel) {
     return {
       data: {
@@ -417,11 +564,22 @@ export function bindEventHandlers() {
     };
   }
 
+  /**
+   * Updates the status message displayed in the UI.
+   *
+   * @param {string} message - The message to display to the user.
+   * @param {string} [type="info"] - The type of status ("info", "success", "fail", etc.) which determines the styling.
+   */
   function updateStatus(message, type = "info") {
     elements.statusMessage.textContent = message;
     elements.statusMessage.className = `status-box status-${type}`;
   }
 
+  /**
+   * Smoothly scrolls the page to bring the specified element into view at the top of the viewport.
+   *
+   * @param {HTMLElement} element - The DOM element to scroll into view.
+   */
   function scrollToElement(element) {
     element.scrollIntoView({
       behavior: "smooth",
@@ -429,6 +587,14 @@ export function bindEventHandlers() {
     });
   }
 
+  /**
+   * Collects and validates replicate readings for all setpoints in the specified calibration phase.
+   * Reads values from either numeric input fields or digit spinners, depending on fast entry mode.
+   * Highlights setpoint blocks with insufficient data and updates the status message if validation fails.
+   *
+   * @param {string} phaseLabel - The calibration phase ("Pre" or "Post").
+   * @returns {Object|null} An object mapping setpoint fractions to arrays of readings, or null if validation fails.
+   */
   function getReadingsForPhase(phaseLabel) {
     const container =
       phaseLabel === "Pre" ? elements.preContainer : elements.postContainer;
@@ -491,6 +657,14 @@ export function bindEventHandlers() {
     return allStats;
   }
 
+  /**
+   * Sets up a collapsible section in the UI by binding click and keyboard event listeners
+   * to the toggle element. Toggles the 'collapsed' class on the section and updates the
+   * toggle icon and aria-expanded attribute for accessibility.
+   *
+   * @param {HTMLElement} toggleElement - The element that toggles the collapsible section.
+   * @param {HTMLElement} sectionElement - The section element to show/hide.
+   */
   function setupCollapsibleSection(toggleElement, sectionElement) {
     if (toggleElement && sectionElement) {
       toggleElement.addEventListener("click", () => {
@@ -515,6 +689,13 @@ export function bindEventHandlers() {
     }
   }
 
+  /**
+   * Handles the main calibration calculation workflow.
+   * Validates setup and input data, computes statistics for each setpoint,
+   * updates UI with results, manages phase transitions (Pre/Post),
+   * and controls export/reporting logic.
+   * Also checks ISO 8655 compliance and updates session state.
+   */
   function handleCalculation() {
     const nominalVol = parseFloat(elements.nominalVolInput.value);
     const tempC = parseFloat(elements.tempCInput.value);
@@ -537,11 +718,12 @@ export function bindEventHandlers() {
       return;
     }
     const balanceU = parseFloat(document.getElementById("balance_unc").value);
-    const mpeSys100 = limitsFor(nominalVol, 1).sys;
-    if (balanceU >= mpeSys100 / 4) {
+    // Compute lim100 once and reuse
+    const lim100 = limitsFor(nominalVol, 1);
+    if (balanceU >= lim100.sys / 4) {
       updateStatus(
         `Balance uncertainty (${balanceU} mg) exceeds ISO limit (<¼ MPEsys = ${formatNum(
-          mpeSys100 / 4
+          lim100.sys / 4
         )} mg).`,
         "fail"
       );
@@ -556,6 +738,17 @@ export function bindEventHandlers() {
     // Individual setpoint passes are determined within the loop.
     let overallPass = true;
 
+    /**
+     * For each setpoint, compute calibration statistics (mean, systematic error, random error),
+     * determine pass/fail status against ISO 8655 limits, and store results in phaseResults.
+     *
+     * @param {number[]} SETPOINTS - Array of setpoint fractions (e.g., [1, 0.5, 0.1]).
+     * @param {number} nominalVol - The nominal volume for the pipette.
+     * @param {Object} readings - Object mapping setpoints to arrays of replicate readings.
+     * @param {number} tempC - Temperature in Celsius.
+     * @param {number} pressureKpa - Pressure in kPa.
+     * @returns {Object} phaseResults - Object mapping setpoints to computed statistics and pass/fail status.
+     */
     for (const sp of SETPOINTS) {
       const lim = limitsFor(nominalVol, sp);
       const stats = computeStats(
@@ -573,7 +766,6 @@ export function bindEventHandlers() {
     }
 
     // Pre-calculate the 100 % set-point limits for messaging
-    const lim100 = limitsFor(nominalVol, 1);
     if (Object.keys(phaseResults).length !== SETPOINTS.length) {
       updateStatus(
         "Error: Could not calculate results for all setpoints.",
@@ -706,6 +898,12 @@ export function bindEventHandlers() {
     }
   }
 
+  /**
+   * Resets the calibration app to its initial state.
+   * Destroys any existing charts, rebuilds input fields, resets UI sections,
+   * clears results, and disables export functionality.
+   * Also clears any stored calibration results from localStorage.
+   */
   function initializeApp() {
     Object.values(chartInstances).forEach((chart) => chart?.destroy());
     chartInstances = {};
@@ -735,17 +933,46 @@ export function bindEventHandlers() {
     return passSys && passRand ? "pass" : "fail";
   }
 
+  /**
+   * Returns a status text string ("PASS", "FAIL", or "N/A") for a setpoint based on systematic and random error pass/fail.
+   * If failed, includes reasons and limit values if provided.
+   *
+   * @param {boolean|null} passSys - Whether the systematic error passes the limit.
+   * @param {boolean|null} passRand - Whether the random error passes the limit.
+   * @param {{sys: number, rand: number}|undefined} limits - The error limits for the setpoint (optional).
+   * @returns {string} Status text for display in the summary table.
+   */
   function getStatusText(passSys, passRand, limits) {
     if (passSys === null || passRand === null) return "N/A";
     if (passSys && passRand) return "PASS";
     let reasons = [];
-    if (!passSys) reasons.push("Sys");
-    if (!passRand) reasons.push("Rand");
-    return `FAIL (${reasons.join("/")})`;
+    if (!passSys) {
+      reasons.push(limits ? `Sys > ±${limits.sys}` : "Sys");
+    }
+    if (!passRand) {
+      reasons.push(limits ? `Rand > ${limits.rand}` : "Rand");
+    }
+    return `FAIL (${reasons.join(" / ")})`;
   }
 
-  // --- Bind event listeners ---
+  // --- Event Listeners for Meta Fields ---
+  // Update state whenever meta fields change
+  ["operator", "pipette", "balance", "date"].forEach((key) => {
+    if (elements[key]) {
+      elements[key].addEventListener("change", () => {
+        updateSessionMetaFromDOM(elements);
+        // Optionally, re-check if export can be enabled *if* results exist
+        // This depends on the desired UX. Usually, export is enabled only after calculation.
+      });
+    }
+  });
+
+  // --- Main Event Listeners ---
   elements.calculateBtn.addEventListener("click", handleCalculation);
+  /**
+   * Handles the click event for the export button.
+   * Retrieves pre- and post-calibration results from localStorage and triggers PDF export.
+   */
   elements.export.addEventListener("click", () => {
     // Retrieve results from localStorage or state if not readily available
     const pre = JSON.parse(localStorage.getItem("pipetteCalPreResults"));
@@ -754,6 +981,12 @@ export function bindEventHandlers() {
     exportPdf(pre, post);
   });
   elements.resetBtn.addEventListener("click", initializeApp); // Use initializeApp for reset
+
+  /**
+   * Handles changes to the nominal volume input field.
+   * Rebuilds setpoint input fields for both Pre- and Post-calibration phases (if applicable),
+   * resets results and UI state, and prepares the app for new Pre-Calibration readings.
+   */
   elements.nominalVolInput.addEventListener("change", () => {
     buildSetpointInputs(
       elements.preContainer,
@@ -783,6 +1016,12 @@ export function bindEventHandlers() {
     elements.postSection.classList.add("hidden");
     elements.postSection.classList.remove("phase-active");
   });
+
+  /**
+   * Handles changes to the number of readings input field.
+   * Rebuilds setpoint input fields for both Pre- and Post-calibration phases (if applicable),
+   * resets results and UI state, and prepares the app for new Pre-Calibration readings.
+   */
   elements.numReadingsInput.addEventListener("change", () => {
     buildSetpointInputs(
       elements.preContainer,
@@ -815,6 +1054,12 @@ export function bindEventHandlers() {
     elements.postSection.classList.add("hidden");
     elements.postSection.classList.remove("phase-active");
   });
+
+  /**
+   * Handles changes to the fast entry checkbox.
+   * Toggles between numeric input fields and digit spinners for setpoint inputs,
+   * and rebuilds the input fields for the current phase accordingly.
+   */
   elements.fastEntryCheckbox.addEventListener("change", () => {
     fastEntryMode = elements.fastEntryCheckbox.checked;
     // rebuild current phase inputs with the new mode
@@ -839,19 +1084,19 @@ export function bindEventHandlers() {
     }
   });
 
-  // Setup collapsible sections
+  // --- Collapsible Sections Setup ---
   setupCollapsibleSection(elements.infoToggle, elements.infoSection);
   setupCollapsibleSection(
     elements.practicalGuideToggle,
     elements.practicalGuideSection
   );
 
-  // Initial setup
+  // --- Initial App Setup ---
   initializeApp();
   // Update meta state from initial DOM values (e.g., pre-filled date)
   updateSessionMetaFromDOM(elements);
 
-  // Service worker registration
+  // --- Service Worker Registration ---
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker
       .register("../sw.js") // Adjust path if needed
