@@ -2,6 +2,15 @@
 import { sessionMeta, calibrationID } from "./state.js";
 import { formatNum } from "./utils.js";
 
+/**
+ * Exports a pipette calibration report as a PDF file.
+ * The report includes session metadata, pre- and post-calibration results, and charts.
+ * Uses jsPDF and autoTable for PDF generation.
+ *
+ * @param {Object} preResults - Pre-calibration results keyed by setpoint.
+ * @param {Object} postResults - Post-calibration results keyed by setpoint.
+ * @returns {Promise<void>} Resolves when the PDF is generated and saved.
+ */
 export async function exportPdf(preResults, postResults) {
   if (!calibrationID) {
       console.error("Cannot export PDF: Calibration ID missing.");

@@ -1,8 +1,12 @@
 // src/storage.js
 import { sessionMeta, calibrationID, setCalibrationID } from "./state.js"; // Import setCalibrationID if needed elsewhere
-// --- REMOVE dependency on metaElems ---
 
-// This function now checks the state object, assuming it's been updated elsewhere (by dom.js)
+/**
+ * Checks if all required session metadata fields (operator, pipette, balance, date)
+ * have been populated in the sessionMeta state object.
+ *
+ * @returns {boolean} True if all metadata fields are non-empty, false otherwise.
+ */
 export function readSessionMeta() {
   // Check if the properties within the imported sessionMeta object have values
   return (
@@ -13,6 +17,15 @@ export function readSessionMeta() {
   );
 }
 
+/**
+ * Saves a calibration session to localStorage, including metadata, pre- and post-calibration results,
+ * and pass/fail status. If a session with the current calibration ID exists, it is overwritten.
+ *
+ * @param {Object} preResults - Results from the pre-calibration measurements.
+ * @param {Object} postResults - Results from the post-calibration measurements.
+ * @param {boolean} pass - Whether the calibration passed or failed.
+ * @returns {boolean} True if the session was saved successfully.
+ */
 export function saveSession(preResults, postResults, pass) {
   const db = JSON.parse(localStorage.getItem("pipetteCalSessions") || "[]");
 

@@ -2,6 +2,20 @@
 
 import { DEFAULT_PRECISION } from "./constants.js";
 
+/**
+ * DigitSpinner provides a custom numeric input UI component for precise value entry.
+ * It displays the value as styled digits and allows increment/decrement via buttons or keyboard.
+ * Used for entering measurement values in the pipette calibration workflow.
+ *
+ * @class
+ * @param {HTMLElement} containerElement - The DOM element to render the spinner into.
+ * @param {Object} [options] - Configuration options for the spinner.
+ * @param {number} [options.initialValue=0] - Initial value to display.
+ * @param {number} [options.step=0.1] - Step size for increment/decrement.
+ * @param {number} [options.min=0] - Minimum allowed value.
+ * @param {number} [options.max=10000] - Maximum allowed value.
+ * @param {number} [options.precision=DEFAULT_PRECISION] - Number of decimal places to display.
+ */
 export class DigitSpinner {
   constructor(containerElement, options = {}) {
     this.container = containerElement;
@@ -20,6 +34,12 @@ export class DigitSpinner {
     this.render();
     this.container.spinnerInstance = this;
   }
+  /**
+   * Determines the number of decimal places to use for the spinner value,
+   * based on the step size or the provided precision option.
+   *
+   * @returns {number} The number of decimal places for value formatting.
+   */
   _getPrecision() {
     const stepString = String(this.options.step);
     if (stepString.includes(".")) {
@@ -27,6 +47,13 @@ export class DigitSpinner {
     }
     return this.options.precision;
   }
+  /**
+   * Parses and clamps the given value to the spinner's min and max,
+   * and rounds it to the configured precision.
+   *
+   * @param {number|string} value - The value to parse and clamp.
+   * @returns {number} The parsed, clamped, and rounded value.
+   */
   _parseValue(value) {
     let num = parseFloat(value);
     if (isNaN(num)) num = this.options.min;
@@ -35,6 +62,13 @@ export class DigitSpinner {
     const factor = Math.pow(10, this._precision || DEFAULT_PRECISION);
     return Math.round(num * factor) / factor;
   }
+  /**
+   * Creates and appends the DOM elements for the digit spinner UI,
+   * including the display for digits and the increment/decrement buttons.
+   * Sets up the container structure and accessibility attributes.
+   *
+   * @private
+   */
   _createElements() {
     this.container.innerHTML = "";
     this.container.classList.add("digit-spinner");
@@ -58,6 +92,13 @@ export class DigitSpinner {
     controlsDiv.appendChild(this.upButton);
     this.container.appendChild(controlsDiv);
   }
+  /**
+   * Attaches event listeners to the spinner's increment and decrement buttons,
+   * as well as keyboard handlers for arrow key navigation.
+   * Handles user interactions for changing the spinner value.
+   *
+   * @private
+   */
   _addEventListeners() {
     this.upButton.addEventListener("click", () => this.stepUp());
     this.downButton.addEventListener("click", () => this.stepDown());
@@ -74,6 +115,11 @@ export class DigitSpinner {
       }
     });
   }
+  /**
+   * Renders the current spinner value as styled digit elements in the UI.
+   * Splits the value into integer and fractional parts, displays each digit,
+   * and updates the container's data-value attribute.
+   */
   render() {
     const valueString = this._value.toFixed(this._precision);
     this.digitsDisplay.innerHTML = "";
