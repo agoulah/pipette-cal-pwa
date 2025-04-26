@@ -48,16 +48,38 @@ export function getZfactor(tempC, pressure) {
   if (clampedP < minP) clampedP = minP;
   if (clampedP > maxP) clampedP = maxP;
 
-  // Create the row object mapping numeric temperature to Z-factor at clampedP
-  // interp1D expects row keys to be the numeric values from the keys array
-  const zFactorsAtPressureP = {};
+  // Interpolate Z-factor for pressure if needed
+  // For each temperature, interpolate Z for the given pressure
+  const zFactorsAtPressure = {};
   tempKeys.forEach((tNum) => {
     const tStr = tNum.toFixed(1); // CF_TABLE uses string keys for temperature
-    zFactorsAtPressureP[tNum] = CF_TABLE[tStr][clampedP]; // Pressure key is numeric
+    const row = CF_TABLE[tStr];
+    // Find two nearest pressure keys
+    const pList = Object.keys(row).map(Number).sort((a, b) => a - b);
+    let zVal;
+    if (pList.includes(clampedP)) {
+      zVal = row[clampedP];
+    } else {
+      // Find lower and upper pressure keys
+      let lower = pList[0], upper = pList[pList.length - 1];
+      for (let i = 0; i < pList.length - 1; i++) {
+        if (pList[i] <= clampedP && clampedP < pList[i + 1]) {
+          lower = pList[i];
+          upper = pList[i + 1];
+          break;
+        }
+      }
+      // Linear interpolation
+      const zLow = row[lower];
+      const zHigh = row[upper];
+      const f = (clampedP - lower) / (upper - lower);
+      zVal = zLow + f * (zHigh - zLow);
+    }
+    zFactorsAtPressure[tNum] = zVal;
   });
 
   // Use interp1D for temperature interpolation
-  const z = interp1D(tempC, tempKeys, zFactorsAtPressureP);
+  const z = interp1D(tempC, tempKeys, zFactorsAtPressure);
   return z;
 }
 
@@ -72,6 +94,25 @@ export function getZfactor(tempC, pressure) {
  * @returns {Object} Object containing Mean, SD, Sys, Rand, N, and vols.
  */
 export function computeStats(mgArr, targetUl, tempC, pressureKpa) {
+  // Validate tempC and pressureKpa
+  if (
+    typeof tempC !== "number" ||
+    isNaN(tempC) ||
+    typeof pressureKpa !== "number" ||
+    isNaN(pressureKpa)
+  ) {
+    console.error(
+      `Invalid temperature or pressure: tempC=${tempC}, pressureKpa=${pressureKpa}`
+    );
+    return {
+      Mean: NaN,
+      SD: NaN,
+      Sys: NaN,
+      Rand: NaN,
+      N: 0,
+      vols: [],
+    };
+  }
   const validMasses = mgArr.filter(
     (mg) => typeof mg === "number" && !isNaN(mg) && mg >= 0
   );
@@ -88,7 +129,9 @@ export function computeStats(mgArr, targetUl, tempC, pressureKpa) {
   const rho = densityWater(tempC);
   const Z = getZfactor(tempC, pressureKpa);
   if (isNaN(rho) || isNaN(Z)) {
-    console.error("Density or Z-factor calculation failed.");
+    console.error(
+      `Density or Z-factor calculation failed. rho=${rho}, Z=${Z}, tempC=${tempC}, pressureKpa=${pressureKpa}`
+    );
     return {
       Mean: NaN,
       SD: NaN,
@@ -98,6 +141,7 @@ export function computeStats(mgArr, targetUl, tempC, pressureKpa) {
       vols: [],
     };
   }
+  // Convert mg to uL: vol (uL) = (mg * Z) / rho
   const vols = validMasses.map((mg) => (mg * Z) / rho);
   const meanVol = mean(vols);
   const n = vols.length;
