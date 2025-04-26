@@ -1,6 +1,10 @@
-// src/charts.js
-// Chart-rendering utilities for pipette calibration results.
-// Expects Chart.js to be loaded globally (via <script> tag).
+/**
+ * @file charts.js
+ * @description Chart-rendering utilities for pipette calibration results.
+ * Provides functions to render line charts for mean delivered volumes,
+ * systematic errors, and random errors using Chart.js.
+ * Expects Chart.js to be loaded globally (via <script> tag).
+ */
 
 /**
  * Render a line chart of mean delivered volumes.
