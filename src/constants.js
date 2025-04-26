@@ -1,6 +1,11 @@
 // src/constants.js
 
-// Z-factor Table
+/**
+ * Correction Factor (Z-factor) Table for water density and air buoyancy corrections.
+ * Keys are temperature in °C (as strings or numbers), values are objects mapping pressure (kPa) to Z-factor.
+ * Used for converting measured mass to volume in pipette calibration.
+ * @type {Object.<string|number, Object.<number, number>>}
+ */
 export const CF_TABLE = {
   "15.0": {
     80: 1.0017,
@@ -283,9 +288,14 @@ export const CF_TABLE = {
   },
 };
 
-/*  MPE limits (ISO 8655-2 : 2022 Table 2 — variable-volume, single-channel, type A/D1/D2)
- *  Values are the ABSOLUTE µL limits.  p100/p50 share the same limit for Sys;
- *  p10 has its own smaller limit.
+/**
+ * ISO 8655-2:2022 Maximum Permissible Error (MPE) limits for variable-volume, single-channel pipettes (type A/D1/D2).
+ * Each entry contains the nominal volume (µL) and absolute limits for systematic (sys) and random (rand) errors at setpoints p100, p50, and p10.
+ * @type {Array<{
+ *   nom: number,
+ *   sys: { p100: number, p50: number, p10: number },
+ *   rand: { p100: number, p50: number, p10: number }
+ * }>}
  */
 export const MPE = [
   {
@@ -355,5 +365,15 @@ export const MPE = [
   },
 ];
 
+/**
+ * Default setpoints for pipette calibration as fractions of nominal volume.
+ * Typically 0.1 (10%), 0.5 (50%), and 1.0 (100%).
+ * @type {number[]}
+ */
 export const SETPOINTS = [0.1, 0.5, 1.0];
+
+/**
+ * Default number of decimal places for reporting results.
+ * @type {number}
+ */
 export const DEFAULT_PRECISION = 3;
