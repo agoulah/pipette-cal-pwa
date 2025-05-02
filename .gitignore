@@ -95,3 +95,9 @@ ENV/
 env.bak/
 venv.bak/
 **/venv/
+all_files_export.txt
+extract.py
+pipette_cal_pwa_source.txt
+pipette-cal-pwa_screen_1_mockup.png
+pipette-cal-pwa_screen_2_mockup.png
+pipette-cal-pwa_screen_3_mockup.png
